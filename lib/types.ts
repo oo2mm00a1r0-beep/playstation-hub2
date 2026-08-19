@@ -3,10 +3,12 @@ export type Product = {
   name: string;
   console: string;
   category: string;
-  condition: 'New' | 'Used';
+  condition: string;
   price: number;
   description: string;
   images: string[];
+  size: 'S' | 'M' | 'L' | 'XL' | 'XXL' | null;
+  sizes?: ('S' | 'M' | 'L' | 'XL' | 'XXL')[] | null;
   status: 'available' | 'sold';
   created_at: string;
 };
@@ -25,6 +27,8 @@ export type Order = {
   items: CartItem[];
   total: number;
   payment_status: 'Paid' | 'Failed' | 'Pending';
+  payment_method?: 'Naspay' | 'Bank Transfer / InstaPay';
+  reference_number?: string | null;
   created_at: string;
 };
 
@@ -52,8 +56,9 @@ export type Offer = {
   created_at: string;
 };
 
-export const CONSOLES = ['PS1', 'PS2', 'PS3', 'PS4', 'PS5', 'PSP', 'PS Vita'] as const;
-export const CATEGORIES = ['Consoles', 'Games', 'Accessories', 'Retro'] as const;
+export const CONSOLES = ['PS1', 'PS2', 'PS3', 'PS4', 'PS5', 'PSP', 'PS Vita', 'Xbox One', 'Xbox Series'] as const;
+export const CATEGORIES = ['Consoles', 'Games', 'Accessories', 'Clothing', 'Retro'] as const;
+export const SIZES = ['S', 'M', 'L', 'XL', 'XXL'] as const;
 
 export const EGYPT_GOVERNORATES = [
   { name: 'Cairo', days: '1-2 days' },

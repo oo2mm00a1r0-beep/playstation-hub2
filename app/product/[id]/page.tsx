@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ShoppingCart, ArrowLeft, Check, Tag } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, Check, Tag, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/lib/cart';
 import type { Product } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { getConditionLabel, getConsoleSpecs, getGameSpecs } from '@/lib/product-details';
 
 const FALLBACK_IMG = 'https://images.pexels.com/photos/3945653/pexels-photo-3945653.jpeg?auto=compress&cs=tinysrgb&w=1200';
 
@@ -101,12 +102,12 @@ export default function ProductDetailPage() {
         </div>
 
         <div className="space-y-5">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <span className={cn(
               'rounded-pill px-3 py-1 text-xs font-bold',
-              product.condition === 'New' ? 'bg-brand-cyan/20 text-brand-cyan' : 'bg-white/10 text-white/70'
+              getConditionLabel(product).startsWith('New') ? 'bg-brand-cyan/20 text-brand-cyan' : 'bg-white/10 text-white/70'
             )}>
-              {product.condition}
+              {getConditionLabel(product)}
             </span>
             <span className="rounded-pill px-3 py-1 text-xs font-bold bg-white/10 text-white/70">
               {product.console}
@@ -122,7 +123,57 @@ export default function ProductDetailPage() {
             EGP {Number(product.price).toLocaleString()}
           </p>
 
-          <p className="text-white/60 leading-relaxed">{product.description}</p>
+          {product.category === 'Consoles' && (
+            <section className="rounded-xl border border-white/10 bg-white/[0.03] p-4 space-y-3">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-brand-cyan">Specifications</h2>
+              <dl className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+                {getConsoleSpecs(product).map((spec) => (
+                  <div key={spec.label} className="rounded-lg bg-white/[0.03] p-2.5">
+                    <dt className="text-xs text-white/40">{spec.label}</dt>
+                    <dd className="mt-0.5 text-white/80">{spec.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          )}
+
+          {product.category === 'Games' && (
+            <section className="rounded-xl border border-white/10 bg-white/[0.03] p-4 space-y-3">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-brand-cyan">Gameplay</h2>
+              <dl className="space-y-2 text-sm">
+                {getGameSpecs(product).map((spec) => (
+                  <div key={spec.label} className="flex gap-3 border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                    <dt className="w-24 flex-shrink-0 text-xs text-white/40">{spec.label}</dt>
+                    <dd className="text-white/80">{spec.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          )}
+
+          <div className="text-white/60 leading-relaxed space-y-1">
+            {(() => {
+              const lines = product.description.split('\n');
+              const intro: string[] = [];
+              const bullets: string[] = [];
+              let inBullets = false;
+              for (const line of lines) {
+                const t = line.trim();
+                if (t.startsWith('- ')) { inBullets = true; bullets.push(t.slice(2)); }
+                else if (t) { if (inBullets) bullets.push(t); else intro.push(t); }
+              }
+              return (
+                <>
+                  {intro.map((t, i) => <p key={`i${i}`}>{t}</p>)}
+                  {bullets.length > 0 && (
+                    <ul className="list-disc ml-5 space-y-1">
+                      {bullets.map((t, i) => <li key={`b${i}`}>{t}</li>)}
+                    </ul>
+                  )}
+                </>
+              );
+            })()}
+          </div>
 
           {product.status === 'sold' ? (
             <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-center">
@@ -144,6 +195,16 @@ export default function ProductDetailPage() {
               </Button>
             </div>
           )}
+
+          <a
+            href={`https://wa.me/201068328768?text=${encodeURIComponent(`Hello, I have a question about ${product.name}`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex h-11 items-center justify-center gap-2 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 text-sm font-bold text-emerald-300 transition-colors hover:bg-emerald-500/20"
+          >
+            <MessageCircle className="h-4 w-4" />
+            اسأل عن المنتج على WhatsApp
+          </a>
 
           <div className="pt-4 border-t border-white/10 space-y-2">
             <div className="flex items-center gap-2 text-sm text-white/60">

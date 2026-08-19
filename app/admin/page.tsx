@@ -20,7 +20,8 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    const { error } = await signIn(`${username}@playstationhub.com`, password);
+    const email = username.includes('@') ? username.trim() : `${username.trim()}@playstationhub.com`;
+    const { error } = await signIn(email, password);
     if (error) {
       setError('Invalid username or password.');
       setLoading(false);

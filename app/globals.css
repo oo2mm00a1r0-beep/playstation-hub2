@@ -81,4 +81,14 @@
     content: '';
     @apply absolute -bottom-1 left-0 right-0 h-0.5 rounded-pill bg-brand-gradient;
   }
+  .offers-nav-link {
+    @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-orange-200 hover:text-orange-100;
+    background-color: rgb(251 146 60 / 0.15);
+  }
+  .offers-nav-link:hover {
+    background-color: rgb(251 146 60 / 0.25);
+  }
+  .offers-nav-link.active::after {
+    @apply hidden;
+  }
 }

@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { Product, Order, SellSubmission, Offer } from '@/lib/types';
-import { CONSOLES, CATEGORIES } from '@/lib/types';
+import { CONSOLES, CATEGORIES, SIZES } from '@/lib/types';
 import { Package, ShoppingCart, Store, Tag, LogOut, Plus, Trash2, Pencil, X, Check } from 'lucide-react';
 
 type TabKey = 'products' | 'orders' | 'sell' | 'offers';
@@ -101,10 +101,11 @@ function ProductForm({ product, onClose, onSaved }: { product: Product | null; o
     name: product?.name || '',
     console: product?.console || 'PS5',
     category: product?.category || 'Consoles',
-    condition: (product?.condition || 'New') as 'New' | 'Used',
+    condition: (product?.condition || 'New') as string,
     price: product?.price?.toString() || '',
     description: product?.description || '',
     images: (product?.images || []).join(', '),
+    size: product?.size || '',
     status: (product?.status || 'available') as 'available' | 'sold',
   });
   const [saving, setSaving] = useState(false);
@@ -120,6 +121,7 @@ function ProductForm({ product, onClose, onSaved }: { product: Product | null; o
       price: parseFloat(form.price),
       description: form.description,
       images: form.images.split(',').map((s) => s.trim()).filter(Boolean),
+      size: form.size || null,
       status: form.status,
     };
     if (product) {
@@ -145,8 +147,9 @@ function ProductForm({ product, onClose, onSaved }: { product: Product | null; o
       <div className="grid sm:grid-cols-3 gap-4">
         <div className="space-y-2"><Label className="text-white/70">Console</Label><Select value={form.console} onValueChange={(v) => setForm({ ...form, console: v })}><SelectTrigger className="bg-white/5 border-white/10 text-white"><SelectValue /></SelectTrigger><SelectContent className="bg-brand-navy-card border-white/10">{CONSOLES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></div>
         <div className="space-y-2"><Label className="text-white/70">Category</Label><Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}><SelectTrigger className="bg-white/5 border-white/10 text-white"><SelectValue /></SelectTrigger><SelectContent className="bg-brand-navy-card border-white/10">{CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></div>
-        <div className="space-y-2"><Label className="text-white/70">Condition</Label><Select value={form.condition} onValueChange={(v) => setForm({ ...form, condition: v as 'New' | 'Used' })}><SelectTrigger className="bg-white/5 border-white/10 text-white"><SelectValue /></SelectTrigger><SelectContent className="bg-brand-navy-card border-white/10"><SelectItem value="New">New</SelectItem><SelectItem value="Used">Used</SelectItem></SelectContent></Select></div>
+        <div className="space-y-2"><Label className="text-white/70">Condition</Label><Select value={form.condition} onValueChange={(v) => setForm({ ...form, condition: v })}><SelectTrigger className="bg-white/5 border-white/10 text-white"><SelectValue /></SelectTrigger><SelectContent className="bg-brand-navy-card border-white/10"><SelectItem value="New">New</SelectItem><SelectItem value="New (Sealed)">New (Sealed)</SelectItem><SelectItem value="Used">Used</SelectItem><SelectItem value="Used (Like New)">Used (Like New)</SelectItem><SelectItem value="Used (Excellent)">Used (Excellent)</SelectItem><SelectItem value="Used (Good)">Used (Good)</SelectItem><SelectItem value="Used (Fair)">Used (Fair)</SelectItem></SelectContent></Select></div>
       </div>
+      <div className="space-y-2"><Label className="text-white/70">Size (optional)</Label><Select value={form.size || 'None'} onValueChange={(v) => setForm({ ...form, size: v === 'None' ? '' : v })}><SelectTrigger className="bg-white/5 border-white/10 text-white"><SelectValue /></SelectTrigger><SelectContent className="bg-brand-navy-card border-white/10"><SelectItem value="None">No size</SelectItem>{SIZES.map((size) => <SelectItem key={size} value={size}>{size}</SelectItem>)}</SelectContent></Select></div>
       <div className="space-y-2"><Label className="text-white/70">Description</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="bg-white/5 border-white/10 text-white min-h-[80px]" /></div>
       <div className="space-y-2"><Label className="text-white/70">Image URLs (comma-separated)</Label><Input value={form.images} onChange={(e) => setForm({ ...form, images: e.target.value })} className="bg-white/5 border-white/10 text-white" placeholder="https://..." /></div>
       <div className="space-y-2"><Label className="text-white/70">Status</Label><Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as 'available' | 'sold' })}><SelectTrigger className="bg-white/5 border-white/10 text-white"><SelectValue /></SelectTrigger><SelectContent className="bg-brand-navy-card border-white/10"><SelectItem value="available">Available</SelectItem><SelectItem value="sold">Sold</SelectItem></SelectContent></Select></div>
@@ -167,6 +170,11 @@ function OrdersTab() {
 
   useEffect(() => { load(); }, []);
 
+  const updatePaymentStatus = async (orderId: string, paymentStatus: 'Pending' | 'Paid' | 'Failed') => {
+    await supabase.from('orders').update({ payment_status: paymentStatus }).eq('id', orderId);
+    load();
+  };
+
   if (loading) return <p className="text-white/50">Loading...</p>;
 
   return (
@@ -182,19 +190,26 @@ function OrdersTab() {
             <p className="font-bold text-brand-cyan">EGP {Number(o.total).toLocaleString()}</p>
           </div>
           <p className="text-sm text-white/60">{o.address}</p>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-white/50">
+            <span>Method: {o.payment_method || 'Naspay'}</span>
+            {o.reference_number && <span>• Ref: {o.reference_number}</span>}
+            {o.payment_method === 'Bank Transfer / InstaPay' && o.payment_status === 'Pending' && (
+              <span className="rounded-full bg-yellow-400/10 px-2 py-0.5 font-semibold text-yellow-300">Bank transfer pending review</span>
+            )}
+          </div>
           <div className="flex items-center gap-2 pt-2">
             <span className="text-xs text-white/50">Payment:</span>
-            <Select
-              value={o.payment_status}
-              onValueChange={async (v) => { await supabase.from('orders').update({ payment_status: v }).eq('id', o.id); load(); }}
-            >
-              <SelectTrigger className="w-32 h-8 bg-white/5 border-white/10 text-white text-xs"><SelectValue /></SelectTrigger>
-              <SelectContent className="bg-brand-navy-card border-white/10">
-                <SelectItem value="Pending">Pending</SelectItem>
-                <SelectItem value="Paid">Paid</SelectItem>
-                <SelectItem value="Failed">Failed</SelectItem>
-              </SelectContent>
-            </Select>
+            <span className={`text-xs font-bold ${o.payment_status === 'Paid' ? 'text-brand-cyan' : o.payment_status === 'Failed' ? 'text-red-400' : 'text-yellow-400'}`}>
+              {o.payment_status}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2 pt-2">
+            <Button onClick={() => updatePaymentStatus(o.id, 'Paid')} disabled={o.payment_status === 'Paid'} className="h-8 bg-brand-gradient text-white text-xs">
+              Confirm Payment
+            </Button>
+            <Button onClick={() => updatePaymentStatus(o.id, 'Failed')} disabled={o.payment_status === 'Failed'} variant="outline" className="h-8 border-white/20 text-white/70 text-xs">
+              Mark as Failed
+            </Button>
           </div>
         </div>
       ))}

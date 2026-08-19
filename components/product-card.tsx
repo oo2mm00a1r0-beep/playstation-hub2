@@ -6,6 +6,7 @@ import { ShoppingCart, Eye } from 'lucide-react';
 import { useCart } from '@/lib/cart';
 import type { Product } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { getConditionLabel } from '@/lib/product-details';
 
 const FALLBACK_IMG = 'https://images.pexels.com/photos/3945653/pexels-photo-3945653.jpeg?auto=compress&cs=tinysrgb&w=600';
 
@@ -27,9 +28,9 @@ export function ProductCard({ product }: { product: Product }) {
           <div className="absolute top-2 left-2 flex gap-1.5">
             <span className={cn(
               'rounded-pill px-2.5 py-0.5 text-[10px] font-bold backdrop-blur-md',
-              product.condition === 'New' ? 'bg-brand-cyan/20 text-brand-cyan' : 'bg-white/10 text-white/70'
+              getConditionLabel(product).startsWith('New') ? 'bg-brand-cyan/20 text-brand-cyan' : 'bg-white/10 text-white/70'
             )}>
-              {product.condition}
+              {getConditionLabel(product)}
             </span>
           </div>
         </div>
@@ -39,8 +40,9 @@ export function ProductCard({ product }: { product: Product }) {
         <Link href={`/product/${product.id}`}>
           <h3 className="text-sm font-bold text-white truncate hover:text-brand-cyan transition-colors">{product.name}</h3>
         </Link>
-        <p className="text-xs text-white/50">{product.console} · {product.category}</p>
+        <p className="text-xs text-white/50">{product.console} · {product.category}{product.sizes?.length ? ` · Sizes ${product.sizes.join(', ')}` : product.size ? ` · Size ${product.size}` : ''}</p>
         <p className="text-base font-bold text-brand-cyan">EGP {Number(product.price).toLocaleString()}</p>
+        <p className="text-[11px] font-medium text-white/55">{getConditionLabel(product)}</p>
 
         <div className="flex gap-2">
           <button
@@ -48,7 +50,7 @@ export function ProductCard({ product }: { product: Product }) {
             className="flex-1 h-9 rounded-lg bg-brand-gradient text-white text-xs font-bold flex items-center justify-center gap-1.5 hover:opacity-90 transition-opacity"
           >
             <ShoppingCart className="h-3.5 w-3.5" />
-            Add
+            Add to Cart
           </button>
           <Link
             href={`/product/${product.id}`}

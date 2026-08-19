@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const SOCIAL_LINKS = [
-  { label: 'Facebook', href: 'https://facebook.com/Playstati0n.hub' },
-  { label: 'Instagram', href: 'https://instagram.com/playstation.hub1' },
-  { label: 'TikTok', href: 'https://tiktok.com/@playstation_hub' },
+  { label: 'Facebook', href: 'https://facebook.com/Playstati0n.hub', className: 'bg-[#1877F2] hover:bg-[#166fe5] text-white' },
+  { label: 'Instagram', href: 'https://instagram.com/playstation.hub1', className: 'bg-gradient-to-r from-[#833AB4] via-[#E1306C] to-[#F77737] hover:brightness-110 text-white' },
+  { label: 'TikTok', href: 'https://tiktok.com/@playstation_hub', className: 'bg-black hover:bg-[#111111] text-white ring-1 ring-[#25F4EE]' },
 ];
+
+const WHATSAPP_GROUP_URL = 'https://chat.whatsapp.com/CXNUMrCfyF0EGvuyk8psDp?s=sw&p=i&mlu=4&amv=2';
 
 export default function Footer() {
   const pathname = usePathname();
@@ -36,6 +38,7 @@ export default function Footer() {
               <li><Link href="/consoles" className="hover:text-brand-cyan">Consoles</Link></li>
               <li><Link href="/games" className="hover:text-brand-cyan">Games</Link></li>
               <li><Link href="/accessories" className="hover:text-brand-cyan">Accessories</Link></li>
+              <li><Link href="/clothing" className="hover:text-brand-cyan">Clothing</Link></li>
               <li><Link href="/retro" className="hover:text-brand-cyan">Retro Gaming</Link></li>
               <li><Link href="/offers" className="hover:text-brand-cyan">Offers</Link></li>
             </ul>
@@ -47,6 +50,7 @@ export default function Footer() {
               <li><Link href="/sell" className="hover:text-brand-cyan">Sell Your Device</Link></li>
               <li><Link href="/shipping" className="hover:text-brand-cyan">Shipping</Link></li>
               <li><Link href="/contact" className="hover:text-brand-cyan">Contact Us</Link></li>
+              <li><Link href="/track-order" className="hover:text-brand-cyan">Track Order</Link></li>
               <li><Link href="/admin" className="hover:text-brand-cyan">Admin</Link></li>
             </ul>
           </div>
@@ -54,16 +58,21 @@ export default function Footer() {
           <div>
             <h3 className="text-sm font-bold text-white mb-4">Connect</h3>
             <ul className="space-y-2 text-sm text-white/50">
+              <li>
+                <a href={WHATSAPP_GROUP_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center rounded-lg bg-[#25D366] px-3 py-2 font-bold text-black transition hover:bg-[#20bd5a]">
+                  Join our WhatsApp Group
+                </a>
+              </li>
               {SOCIAL_LINKS.map((s) => (
                 <li key={s.label}>
-                  <a href={s.href} target="_blank" rel="noopener noreferrer" className="hover:text-brand-cyan">
+                  <a href={s.href} target="_blank" rel="noopener noreferrer" className={`inline-flex items-center rounded-lg px-3 py-2 font-bold transition ${s.className}`}>
                     {s.label}
                   </a>
                 </li>
               ))}
               <li className="pt-2">
                 <p className="text-xs text-white/40">InstaPay / Wallet</p>
-                <p className="text-sm text-white/70 font-medium">+20 1XX XXX XXXX</p>
+                <p className="text-sm text-white/70 font-medium">01068328768</p>
               </li>
             </ul>
           </div>

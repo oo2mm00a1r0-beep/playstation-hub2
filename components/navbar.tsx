@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { ShoppingCart, Shield, Menu, X } from 'lucide-react';
+import { ShoppingCart, Shield, Menu, X, Flame } from 'lucide-react';
 import { useCart } from '@/lib/cart';
 import { cn } from '@/lib/utils';
 
@@ -12,6 +12,7 @@ const NAV_LINKS = [
   { href: '/consoles', label: 'Consoles' },
   { href: '/games', label: 'Games' },
   { href: '/accessories', label: 'Accessories' },
+  { href: '/clothing', label: 'Clothing' },
   { href: '/retro', label: 'Retro' },
   { href: '/offers', label: 'Offers' },
   { href: '/sell', label: 'Sell Your Device' },
@@ -56,7 +57,7 @@ export default function Navbar() {
           </button>
 
           <div className="hidden lg:flex items-center gap-6 flex-1 justify-end">
-            {NAV_LINKS.slice(0, 4).map((link) => (
+            {NAV_LINKS.slice(0, 5).map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -77,12 +78,17 @@ export default function Navbar() {
           </Link>
 
           <div className="hidden lg:flex items-center gap-6 flex-1 justify-start">
-            {NAV_LINKS.slice(4).map((link) => (
+            {NAV_LINKS.slice(5).map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={cn('nav-link', isActive(link.href) && 'active')}
+                className={cn(
+                  'nav-link',
+                  isActive(link.href) && 'active',
+                  link.href === '/offers' && 'offers-nav-link'
+                )}
               >
+                {link.href === '/offers' && <Flame className="h-3.5 w-3.5" />}
                 {link.label}
               </Link>
             ))}

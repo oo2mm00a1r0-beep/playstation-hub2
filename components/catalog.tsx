@@ -10,14 +10,14 @@ import { Search, SlidersHorizontal, X } from 'lucide-react';
 import type { Product } from '@/lib/types';
 import { CONSOLES } from '@/lib/types';
 
-const CONDITIONS = ['New', 'Used'] as const;
+const CONDITIONS = ['New', 'New (Sealed)', 'Used', 'Used (Like New)', 'Used (Excellent)', 'Used (Good)', 'Used (Fair)'] as const;
 const SORTS = [
   { value: 'newest', label: 'Newest' },
   { value: 'price_asc', label: 'Price: Low to High' },
   { value: 'price_desc', label: 'Price: High to Low' },
 ];
 
-export function Catalog({ category, title, subtitle }: { category?: string; title: string; subtitle: string }) {
+export function Catalog({ category, title, subtitle, emptyMessage = 'No products found.', emptyHint = 'Try adjusting your filters.' }: { category?: string; title: string; subtitle: string; emptyMessage?: string; emptyHint?: string }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState('');
@@ -148,8 +148,8 @@ export function Catalog({ category, title, subtitle }: { category?: string; titl
             </div>
           ) : products.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-white/50 text-lg">No products found.</p>
-              <p className="text-white/30 text-sm mt-1">Try adjusting your filters.</p>
+              <p className="text-white/50 text-lg">{emptyMessage}</p>
+              <p className="text-white/30 text-sm mt-1">{emptyHint}</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">

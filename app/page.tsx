@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/product-card';
 import type { Product } from '@/lib/types';
 
-const HERO_IMAGE = 'https://images.pexels.com/photos/3945653/pexels-photo-3945653.jpeg?auto=compress&cs=tinysrgb&w=1200';
+const HERO_IMAGE = '/atg1.jpg';
 const PROMO_LEFT_IMAGE = 'https://images.pexels.com/photos/7915357/pexels-photo-7915357.jpeg?auto=compress&cs=tinysrgb&w=800';
 const PROMO_RIGHT_IMAGE = 'https://images.pexels.com/photos/596750/pexels-photo-596750.jpeg?auto=compress&cs=tinysrgb&w=800';
 
@@ -76,7 +76,7 @@ export default function HomePage() {
               <div className="absolute inset-0 bg-brand-gradient rounded-full blur-3xl opacity-30 animate-pulse-glow" />
               <div className="relative aspect-square rounded-full overflow-hidden border border-white/10 animate-float">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={HERO_IMAGE} alt="PlayStation Console" className="h-full w-full object-cover" />
+                <img src={HERO_IMAGE} alt="PlayStation Hub" className="h-full w-full object-cover -rotate-90" />
               </div>
             </div>
 

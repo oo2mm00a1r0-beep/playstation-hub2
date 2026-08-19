@@ -18,6 +18,8 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [orderId, setOrderId] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'naspay' | 'bank_transfer'>('naspay');
+  const [bankTransferRef, setBankTransferRef] = useState('');
   const [form, setForm] = useState({
     customer_name: '',
     phone: '',
@@ -38,6 +40,10 @@ export default function CheckoutPage() {
           items: items.map((i) => ({ product: i.product, quantity: i.quantity })),
           total,
           payment_status: 'Pending',
+          ...(paymentMethod === 'bank_transfer' ? {
+            payment_method: 'Bank Transfer / InstaPay',
+            reference_number: bankTransferRef.trim() || null,
+          } : {}),
         }),
       });
       if (!res.ok) throw new Error('Failed to create order');
@@ -74,6 +80,38 @@ export default function CheckoutPage() {
     setLoading(false);
   };
 
+  const handleBankTransferSubmit = async () => {
+    if (!bankTransferRef.trim()) {
+      setError('Please add the transaction reference or the last 4 digits of the sender number.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/orders/pay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_id: orderId,
+          payment_method: 'Bank Transfer / InstaPay',
+          reference_number: bankTransferRef.trim(),
+          payment_status: 'Pending',
+        }),
+      });
+
+      if (!res.ok) throw new Error('Bank transfer update failed');
+
+      clear();
+      setStep('success');
+    } catch {
+      setError('We could not save your transfer details. Please try again.');
+    }
+
+    setLoading(false);
+  };
+
   if (items.length === 0 && step !== 'success') {
     return (
       <div className="mx-auto max-w-2xl px-4 py-20 text-center">
@@ -95,7 +133,16 @@ export default function CheckoutPage() {
         </div>
         <h1 className="text-3xl font-bold text-white mb-3">Order Confirmed!</h1>
         <p className="text-white/60 mb-2">Thank you for your purchase.</p>
-        <p className="text-white/40 text-sm mb-8">Order ID: <span className="font-mono text-brand-cyan">{orderId.slice(0, 8)}</span></p>
+        <div className="mb-8 rounded-xl border border-brand-cyan/20 bg-brand-cyan/10 px-4 py-3">
+          <p className="text-xs uppercase tracking-wide text-white/50">Save this Order ID to track your order</p>
+          <p className="mt-1 break-all font-mono text-sm text-brand-cyan">{orderId}</p>
+        </div>
+        <p className="text-white/40 text-sm mb-8">You can also track your order using the phone number entered at checkout.</p>
+        <div className="mb-8 flex justify-center">
+          <Button asChild variant="outline" className="border-white/20 text-white/70">
+            <Link href="/track-order">Track This Order</Link>
+          </Button>
+        </div>
         <Button asChild className="bg-brand-gradient text-white">
           <Link href="/">Back to Home</Link>
         </Button>
@@ -150,27 +197,50 @@ export default function CheckoutPage() {
               </div>
               <p className="text-sm text-white/50">Prepaid only — no cash on delivery. This is a simulated payment for demonstration.</p>
 
-              <div className="rounded-xl bg-white/5 border border-white/10 p-4 space-y-3">
-                <div className="flex items-center gap-3">
-                  <CreditCard className="h-5 w-5 text-brand-cyan" />
-                  <span className="text-sm text-white/70">Naspay (Demo Mode)</span>
-                </div>
-                <div className="h-10 rounded-lg bg-white/5 flex items-center px-3 text-white/30 text-sm">Card number (demo)</div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="h-10 rounded-lg bg-white/5 flex items-center px-3 text-white/30 text-sm">MM/YY</div>
-                  <div className="h-10 rounded-lg bg-white/5 flex items-center px-3 text-white/30 text-sm">CVC</div>
-                </div>
+              <div className="grid gap-3">
+                <button type="button" onClick={() => setPaymentMethod('naspay')} className={`rounded-xl border p-4 text-left transition ${paymentMethod === 'naspay' ? 'border-brand-cyan bg-brand-cyan/10' : 'border-white/10 bg-white/5'}`}>
+                  <div className="flex items-center gap-3">
+                    <CreditCard className="h-5 w-5 text-brand-cyan" />
+                    <span className="text-sm font-medium text-white">Naspay (Demo Mode)</span>
+                  </div>
+                  <div className="mt-3 h-10 rounded-lg bg-white/5 flex items-center px-3 text-white/30 text-sm">Card number (demo)</div>
+                  <div className="mt-3 grid grid-cols-2 gap-3">
+                    <div className="h-10 rounded-lg bg-white/5 flex items-center px-3 text-white/30 text-sm">MM/YY</div>
+                    <div className="h-10 rounded-lg bg-white/5 flex items-center px-3 text-white/30 text-sm">CVC</div>
+                  </div>
+                </button>
+
+                <button type="button" onClick={() => setPaymentMethod('bank_transfer')} className={`rounded-xl border p-4 text-left transition ${paymentMethod === 'bank_transfer' ? 'border-brand-cyan bg-brand-cyan/10' : 'border-white/10 bg-white/5'}`}>
+                  <div className="flex items-center gap-3">
+                    <div className="h-2.5 w-2.5 rounded-full bg-brand-cyan" />
+                    <span className="text-sm font-medium text-white">Pay via Bank Transfer / InstaPay</span>
+                  </div>
+                  <p className="mt-3 text-xs text-white/60">Transfer first to: <span className="font-semibold text-brand-cyan">01068328768</span></p>
+                  <p className="mt-1 text-xs text-white/40">Add the transaction reference or the last 4 digits of the sender number below.</p>
+                  <div className="mt-3 space-y-2">
+                    <Label className="text-white/70">Reference / Sender last 4 digits</Label>
+                    <Input value={bankTransferRef} onChange={(e) => setBankTransferRef(e.target.value)} className="bg-white/5 border-white/10 text-white placeholder:text-white/30" placeholder="e.g. INV-2048 or 4567" />
+                  </div>
+                </button>
               </div>
 
               {error && <p className="text-red-400 text-sm">{error}</p>}
 
               <div className="space-y-2">
-                <Button onClick={() => handlePayment(true)} disabled={loading} className="w-full h-12 bg-brand-gradient text-white">
-                  {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Pay Now — EGP ' + total.toLocaleString()}
-                </Button>
-                <Button onClick={() => handlePayment(false)} disabled={loading} variant="outline" className="w-full border-white/20 text-white/60">
-                  Simulate Failed Payment
-                </Button>
+                {paymentMethod === 'naspay' ? (
+                  <>
+                    <Button onClick={() => handlePayment(true)} disabled={loading} className="w-full h-12 bg-brand-gradient text-white">
+                      {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Pay Now — EGP ' + total.toLocaleString()}
+                    </Button>
+                    <Button onClick={() => handlePayment(false)} disabled={loading} variant="outline" className="w-full border-white/20 text-white/60">
+                      Simulate Failed Payment
+                    </Button>
+                  </>
+                ) : (
+                  <Button onClick={handleBankTransferSubmit} disabled={loading} className="w-full h-12 bg-brand-gradient text-white">
+                    {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Submit Bank Transfer Details'}
+                  </Button>
+                )}
               </div>
             </div>
           )}
